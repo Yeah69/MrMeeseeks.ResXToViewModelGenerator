@@ -11,6 +11,15 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageVersion>69.0.0</PackageVersion>
+    <Title>MrMeeseeks.ResXToViewModelGenerator</Title>
+    <Authors>Yeah69</Authors>
+    <Description>https://github.com/Yeah69/MrMeeseeks.ResXToViewModelGenerator</Description>
+    <PackageProjectUrl>https://github.com/Yeah69/MrMeeseeks.ResXToViewModelGenerator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Yeah69/MrMeeseeks.ResXToViewModelGenerator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>-/-</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

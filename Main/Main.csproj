@@ -12,7 +12,7 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <DevelopmentDependency>true</DevelopmentDependency>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageVersion>69.0.0</PackageVersion>
+    <PackageVersion>69.0.10</PackageVersion>
     <Title>MrMeeseeks.ResXToViewModelGenerator</Title>
     <Authors>Yeah69</Authors>
     <Description>https://github.com/Yeah69/MrMeeseeks.ResXToViewModelGenerator</Description>
@@ -20,6 +20,10 @@
     <RepositoryUrl>https://github.com/Yeah69/MrMeeseeks.ResXToViewModelGenerator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>-/-</PackageReleaseNotes>
+    <IsPackable>true</IsPackable>
+    <PackBuildOutput>false</PackBuildOutput>
+    <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    <BuildOutputTargetFolder>analyzers</BuildOutputTargetFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,13 +40,18 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <PackageReference Include="IndexRange" Version="1.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="3.9.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" />
-    <PackageReference Include="Scriban" Version="3.6.0" />
-    <PackageReference Include="System.CodeDom" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="3.9.0" PrivateAssets="true" />
   </ItemGroup>
 
-  <Import Project="$(MSBuildProjectName).targets" />
+  <ItemGroup>
+    <!-- Generator dependencies -->
+    <PackageReference Include="IndexRange" Version="1.0.0" Pack="true" GeneratePathProperty="true" PrivateAssets="true" />
+    <PackageReference Include="Scriban" Version="3.7.0" Pack="true" GeneratePathProperty="true" PrivateAssets="true" />
+    <PackageReference Include="System.CodeDom" Version="5.0.0" Pack="true" GeneratePathProperty="true" PrivateAssets="true" />
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgScriban)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgSystem_CodeDom)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgIndexRange)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
 </Project>

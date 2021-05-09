@@ -28,6 +28,9 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 			foreach (var resxFileGroup in resxFileGroups)
 			{
+				//throw new Exception(string.Join(",", resxFileGroup.Select(fi => fi.FullName)));
+				var className = resxFileGroup.Key;
+				
 				var defaultFileName = $"{resxFileGroup.Key}{resxExtension}";
 				if (resxFileGroup.FirstOrDefault(fi => fi.Name == defaultFileName) is not { } defaultFileInfo)
 					return;
@@ -38,14 +41,19 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 						UseResXDataNodes = true
 					};
 
-				var defaultKeyValues = new ReadOnlyDictionary<string, string>(
-					reader
-						.Cast<DictionaryEntry>()
-						.Select(de => de.Value)
-						.Cast<ResXDataNode>()
-						.ToDictionary(
-							dn => dn.Name,
-							dn => dn.GetValue((ITypeResolutionService?) null).ToString() ?? ""));
+				var defaultKeyValuesInner = new Dictionary<string, string>();
+				var defaultKeyValues = new ReadOnlyDictionary<string, string>(defaultKeyValuesInner);
+					
+				foreach (var resXDataNode in reader
+					.OfType<DictionaryEntry>()
+					.Select(de => de.Value)
+					.OfType<ResXDataNode>())
+				{
+					if (defaultKeyValuesInner.ContainsKey(resXDataNode.Name))
+						throw new Exception(
+							$"ResXDataNode with name '{resXDataNode.Name}' in default resx file is contained multiple times ('{className}').");
+					defaultKeyValuesInner.Add(resXDataNode.Name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
+				}
 
 				var localizations = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
@@ -57,20 +65,30 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 				
 				foreach (var vt in localizationFiles)
 				{
+					if (localizations.ContainsKey(vt.Specifier))
+						continue;
+						//throw new Exception(
+						//	$"Multiple localization files with specifier '{vt.Specifier}' ('{className}').");
+					
 					var localizationReader =
 						new ResXResourceReader(vt.FileInfo.FullName)
 						{
 							UseResXDataNodes = true
 						};
 
-					var localizationKeyValues = new ReadOnlyDictionary<string, string>(
-						localizationReader
-							.Cast<DictionaryEntry>()
-							.Select(de => de.Value)
-							.Cast<ResXDataNode>()
-							.ToDictionary(
-								dn => dn.Name,
-								dn => dn.GetValue((ITypeResolutionService?) null).ToString() ?? ""));
+					var localizationKeyValuesInner = new Dictionary<string, string>();
+					var localizationKeyValues = new ReadOnlyDictionary<string, string>(localizationKeyValuesInner);
+					
+					foreach (var resXDataNode in localizationReader
+						.OfType<DictionaryEntry>()
+						.Select(de => de.Value)
+						.OfType<ResXDataNode>())
+					{
+						if (localizationKeyValuesInner.ContainsKey(resXDataNode.Name))
+							throw new Exception(
+								$"ResXDataNode with name '{resXDataNode.Name}' in localization resx file with specifier '{vt.Specifier}' ('{className}') is contained multiple times.");
+						localizationKeyValuesInner.Add(resXDataNode.Name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
+					}
 					
 					localizations.Add(
 						vt.Specifier,
@@ -79,8 +97,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 								.Keys ?? Enumerable.Empty<string>())
 								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
 				}
-
-				var className = resxFileGroup.Key;
+				
 				context.AddSource(
 					$"{@namespace}.{className}.g.cs", 
 					SourceText.From(

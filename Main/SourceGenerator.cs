@@ -34,8 +34,8 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 				if (resxFileGroup.FirstOrDefault(fi => fi.Name == defaultFileName) is not { } defaultFileInfo)
 					return;
 
-				ResXResourceReader? reader =
-					new ResXResourceReader(defaultFileInfo.FullName)
+				ResXResourceReader reader =
+					new (defaultFileInfo?.FullName ?? "")
 					{
 						UseResXDataNodes = true
 					};

@@ -7,6 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Main", "Main\Main.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWpfApp", "SampleWpfApp\SampleWpfApp.csproj", "{9A04C213-CC22-4F55-A86B-1BEC7654366E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{864946FA-46ED-44CD-8B66-6165E96F0CAE}"
+ProjectSection(SolutionItems) = preProject
+	Directory.Build.props = Directory.Build.props
+	Icon\Yeah69Logo_256.png = Icon\Yeah69Logo_256.png
+	LICENSE = LICENSE
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

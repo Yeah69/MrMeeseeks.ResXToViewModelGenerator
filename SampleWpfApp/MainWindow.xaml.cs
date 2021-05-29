@@ -4,6 +4,6 @@
     {
         public MainWindow() => InitializeComponent();
 
-        public ICurrentTextsViewModel Localization { get; } = CurrentTextsViewModel.Create();
+        public ICurrentTextsViewModel Localization { get; } = new CurrentTextsViewModel();
     }
 }

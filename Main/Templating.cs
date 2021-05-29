@@ -81,81 +81,76 @@ namespace {{ namespace }}
         
 		IReadOnlyList<I{{ resx_name }}OptionViewModel> AvailableOptions { get; }
 	}
-
-	public static class Current{{ resx_name }}ViewModel
-	{
-		public static ICurrent{{ resx_name }}ViewModel Create() => new Current{{ resx_name }}ViewModelInner();
         
-		private sealed class Current{{ resx_name }}ViewModelInner : ICurrent{{ resx_name }}ViewModel
+	public sealed class Current{{ resx_name }}ViewModel : ICurrent{{ resx_name }}ViewModel
+	{
+		private I{{ resx_name }}ViewModel _current{{ resx_name }};
+		private I{{ resx_name }}OptionViewModel _currentOption;
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public Current{{ resx_name }}ViewModel()
 		{
-			private I{{ resx_name }}ViewModel _current{{ resx_name }};
-			private I{{ resx_name }}OptionViewModel _currentOption;
-			public event PropertyChangedEventHandler? PropertyChanged;
-
-			public Current{{ resx_name }}ViewModelInner()
-			{
-				AvailableOptions = new ReadOnlyCollection<I{{ resx_name }}OptionViewModel>(
-					new List<I{{ resx_name }}OptionViewModel>
-					{
-					{{ for implementation in implementations }} 
-						new {{ implementation.name }}{{ resx_name }}OptionViewModel(),
-					{{ end }}
-					});
-				_currentOption = AvailableOptions[0];
-				_current{{ resx_name }} = Create{{ resx_name }}(_currentOption);
-			}
-
-			public I{{ resx_name }}OptionViewModel CurrentOption
-			{
-				get => _currentOption;
-				set
+			AvailableOptions = new ReadOnlyCollection<I{{ resx_name }}OptionViewModel>(
+				new List<I{{ resx_name }}OptionViewModel>
 				{
-					if (_currentOption == value) return;
-					_currentOption = value;
-					_current{{ resx_name }} = Create{{ resx_name }}(value);
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentOption)));
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Current{{ resx_name }})));
-				}
-			}
-
-			private I{{ resx_name }}ViewModel Create{{ resx_name }}(I{{ resx_name }}OptionViewModel option) => ((option as I{{ resx_name }}OptionViewModelInternal) ?? new Default{{ resx_name }}OptionViewModel()).Create();
-
-			public I{{ resx_name }}ViewModel Current{{ resx_name }} => _current{{ resx_name }};
-
-			public IReadOnlyList<I{{ resx_name }}OptionViewModel> AvailableOptions { get; }
-
-			public interface I{{ resx_name }}OptionViewModelInternal : I{{ resx_name }}OptionViewModel
-			{
-				I{{ resx_name }}ViewModel Create();
-			}
-
-			{{ for implementation in implementations }} 
-			private class {{ implementation.name }}{{ resx_name }}OptionViewModel : I{{ resx_name }}OptionViewModelInternal
-			{
-#pragma warning disable 0067
-				public event PropertyChangedEventHandler? PropertyChanged;
-#pragma warning restore 0067
-
-	            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
-
-				public I{{ resx_name }}ViewModel Create() => new {{ implementation.name }}{{ resx_name }}ViewModel();
-			}
-			{{ end }}
-
-			{{ for implementation in implementations }} 
-			private class {{ implementation.name }}{{ resx_name }}ViewModel : I{{ resx_name }}ViewModel
-	        {
-#pragma warning disable 0067
-				public event PropertyChangedEventHandler? PropertyChanged;
-#pragma warning restore 0067
-
-	            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
-				{{ for property in implementation.properties }} 
-				public string {{ property.key }} { get; } = {{ property.value }};
+				{{ for implementation in implementations }} 
+					new {{ implementation.name }}{{ resx_name }}OptionViewModel(),
 				{{ end }}
+				});
+			_currentOption = AvailableOptions[0];
+			_current{{ resx_name }} = Create{{ resx_name }}(_currentOption);
+		}
+
+		public I{{ resx_name }}OptionViewModel CurrentOption
+		{
+			get => _currentOption;
+			set
+			{
+				if (_currentOption == value) return;
+				_currentOption = value;
+				_current{{ resx_name }} = Create{{ resx_name }}(value);
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentOption)));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Current{{ resx_name }})));
 			}
+		}
+
+		private I{{ resx_name }}ViewModel Create{{ resx_name }}(I{{ resx_name }}OptionViewModel option) => ((option as I{{ resx_name }}OptionViewModelInternal) ?? new Default{{ resx_name }}OptionViewModel()).Create();
+
+		public I{{ resx_name }}ViewModel Current{{ resx_name }} => _current{{ resx_name }};
+
+		public IReadOnlyList<I{{ resx_name }}OptionViewModel> AvailableOptions { get; }
+
+		public interface I{{ resx_name }}OptionViewModelInternal : I{{ resx_name }}OptionViewModel
+		{
+			I{{ resx_name }}ViewModel Create();
+		}
+
+		{{ for implementation in implementations }} 
+		private class {{ implementation.name }}{{ resx_name }}OptionViewModel : I{{ resx_name }}OptionViewModelInternal
+		{
+#pragma warning disable 0067
+			public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore 0067
+
+            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
+
+			public I{{ resx_name }}ViewModel Create() => new {{ implementation.name }}{{ resx_name }}ViewModel();
+		}
+		{{ end }}
+
+		{{ for implementation in implementations }} 
+		private class {{ implementation.name }}{{ resx_name }}ViewModel : I{{ resx_name }}ViewModel
+        {
+#pragma warning disable 0067
+			public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore 0067
+
+            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
+			{{ for property in implementation.properties }} 
+			public string {{ property.key }} { get; } = {{ property.value }};
 			{{ end }}
 		}
+		{{ end }}
 	}
 }
 #nullable disable").Render(main);

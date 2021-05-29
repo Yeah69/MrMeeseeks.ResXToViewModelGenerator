@@ -28,7 +28,6 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 			foreach (var resxFileGroup in resxFileGroups)
 			{
-				//throw new Exception(string.Join(",", resxFileGroup.Select(fi => fi.FullName)));
 				var className = resxFileGroup.Key;
 				
 				var defaultFileName = $"{resxFileGroup.Key}{resxExtension}";

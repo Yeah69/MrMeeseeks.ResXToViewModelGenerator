@@ -24,7 +24,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			var resxFileGroups = context.AdditionalFiles
 				.Where(af => af.Path.EndsWith(resxExtension))
 				.Select(af => new FileInfo(af.Path))
-				.GroupBy(fi => fi.Name[..fi.Name.IndexOf('.')]);
+				.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')));
 
 			foreach (var resxFileGroup in resxFileGroups)
 			{
@@ -58,7 +58,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 				var localizationFiles = resxFileGroup
 					.Where(fi => fi != defaultFileInfo)
-					.Select(fi => (Specifier: fi.Name[resxFileGroup.Key.Length..^resxExtension.Length].Trim('.'),
+					.Select(fi => (Specifier: fi.Name.Substring(resxFileGroup.Key.Length, fi.Name.Length - resxFileGroup.Key.Length - resxExtension.Length).Trim('.'),
 						FileInfo: fi))
 					.Where(vt => DoesCultureExist(vt.Specifier));
 				

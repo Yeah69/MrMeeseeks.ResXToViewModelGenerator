@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using Scriban;
+using System.Text;
 
 namespace MrMeeseeks.ResXToViewModelGenerator
 {
@@ -31,17 +31,13 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> culturalKeyValues)
 		{
 			var keys = new ReadOnlyCollection<string>(defaultKeyValues.Keys.ToList());
+			var implementations = culturalKeyValues
+				.Select(kvp => Create(kvp.Key.Replace("-", ""), kvp.Key, kvp.Value))
+				.Prepend(Create("Default", "iv", defaultKeyValues))
+				.ToList();
 
-			var main = new Main(
-				@namespace,
-				name,
-				new ResXInterface(keys),
-				culturalKeyValues
-					.Select(kvp => Create(kvp.Key.Replace("-", ""), kvp.Key, kvp.Value))
-					.Prepend(Create("Default", "iv", defaultKeyValues))
-					.ToList());
-
-			return  Template.Parse(@"#nullable enable
+			var stringBuilder = new StringBuilder();
+			stringBuilder.AppendLine(@$"#nullable enable
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -56,104 +52,115 @@ using System.Globalization;
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-{{ resx_name = name }}
 
-namespace {{ namespace }}
-{
-	public interface I{{ resx_name }}ViewModel : INotifyPropertyChanged
-	{
-		CultureInfo CultureInfo { get; }
-		{{ for key in interface.keys }} 
-		string {{ key }} { get; }
-		{{ end }}
-	}
+namespace {@namespace}
+{{
+	public interface I{name}ViewModel : INotifyPropertyChanged
+	{{
+		CultureInfo CultureInfo {{ get; }}");
+			foreach (var key in keys)
+			{
+				stringBuilder.AppendLine($"		string {key} {{ get; }}");
+			}
+			stringBuilder.AppendLine(@$"
+	}}
 	
-	public interface I{{ resx_name }}OptionViewModel : INotifyPropertyChanged
-	{
-		CultureInfo CultureInfo { get; }
-	}
+	public interface I{name}OptionViewModel : INotifyPropertyChanged
+	{{
+		CultureInfo CultureInfo {{ get; }}
+	}}
 
-	public interface ICurrent{{ resx_name }}ViewModel : INotifyPropertyChanged
-	{
-		I{{ resx_name }}ViewModel Current{{ resx_name }} { get; }
+	public interface ICurrent{name}ViewModel : INotifyPropertyChanged
+	{{
+		I{name}ViewModel Current{name} {{ get; }}
 
-		I{{ resx_name }}OptionViewModel CurrentOption { get; set; }
+		I{name}OptionViewModel CurrentOption {{ get; set; }}
         
-		IReadOnlyList<I{{ resx_name }}OptionViewModel> AvailableOptions { get; }
-	}
+		IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
+	}}
         
-	public sealed class Current{{ resx_name }}ViewModel : ICurrent{{ resx_name }}ViewModel
-	{
-		private I{{ resx_name }}ViewModel _current{{ resx_name }};
-		private I{{ resx_name }}OptionViewModel _currentOption;
+	public sealed class Current{name}ViewModel : ICurrent{name}ViewModel
+	{{
+		private I{name}ViewModel _current{name};
+		private I{name}OptionViewModel _currentOption;
 		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public Current{{ resx_name }}ViewModel()
-		{
-			AvailableOptions = new ReadOnlyCollection<I{{ resx_name }}OptionViewModel>(
-				new List<I{{ resx_name }}OptionViewModel>
-				{
-				{{ for implementation in implementations }} 
-					new {{ implementation.name }}{{ resx_name }}OptionViewModel(),
-				{{ end }}
-				});
+		public Current{name}ViewModel()
+		{{
+			AvailableOptions = new ReadOnlyCollection<I{name}OptionViewModel>(
+				new List<I{name}OptionViewModel>
+				{{");
+			
+			foreach (var resXImplementation in implementations)
+			{
+				stringBuilder.AppendLine($"					new {resXImplementation.Name }{name}OptionViewModel(),");
+			}
+			stringBuilder.AppendLine(@$"
+				}});
 			_currentOption = AvailableOptions[0];
-			_current{{ resx_name }} = Create{{ resx_name }}(_currentOption);
-		}
+			_current{name} = Create{name}(_currentOption);
+		}}
 
-		public I{{ resx_name }}OptionViewModel CurrentOption
-		{
+		public I{name}OptionViewModel CurrentOption
+		{{
 			get => _currentOption;
 			set
-			{
+			{{
 				if (_currentOption == value) return;
 				_currentOption = value;
-				_current{{ resx_name }} = Create{{ resx_name }}(value);
+				_current{name} = Create{name}(value);
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentOption)));
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Current{{ resx_name }})));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Current{name})));
+			}}
+		}}
+
+		private I{name}ViewModel Create{name}(I{name}OptionViewModel option) => ((option as I{name}OptionViewModelInternal) ?? new Default{name}OptionViewModel()).Create();
+
+		public I{name}ViewModel Current{name} => _current{name};
+
+		public IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
+
+		public interface I{name}OptionViewModelInternal : I{name}OptionViewModel
+		{{
+			I{name}ViewModel Create();
+		}}
+");
+			
+			foreach (var resXImplementation in implementations)
+			{
+				stringBuilder.AppendLine(@$"		private class {resXImplementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
+		{{
+#pragma warning disable 0067
+			public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore 0067
+
+			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{resXImplementation.LanguageCode}"");
+
+			public I{name}ViewModel Create() => new {resXImplementation.Name}{name}ViewModel();
+		}}");
 			}
-		}
-
-		private I{{ resx_name }}ViewModel Create{{ resx_name }}(I{{ resx_name }}OptionViewModel option) => ((option as I{{ resx_name }}OptionViewModelInternal) ?? new Default{{ resx_name }}OptionViewModel()).Create();
-
-		public I{{ resx_name }}ViewModel Current{{ resx_name }} => _current{{ resx_name }};
-
-		public IReadOnlyList<I{{ resx_name }}OptionViewModel> AvailableOptions { get; }
-
-		public interface I{{ resx_name }}OptionViewModelInternal : I{{ resx_name }}OptionViewModel
-		{
-			I{{ resx_name }}ViewModel Create();
-		}
-
-		{{ for implementation in implementations }} 
-		private class {{ implementation.name }}{{ resx_name }}OptionViewModel : I{{ resx_name }}OptionViewModelInternal
-		{
+			
+			foreach (var resXImplementation in implementations)
+			{
+				stringBuilder.AppendLine(@$"		private class {resXImplementation.Name}{name}ViewModel : I{name}ViewModel
+        {{
 #pragma warning disable 0067
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
-            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
-
-			public I{{ resx_name }}ViewModel Create() => new {{ implementation.name }}{{ resx_name }}ViewModel();
-		}
-		{{ end }}
-
-		{{ for implementation in implementations }} 
-		private class {{ implementation.name }}{{ resx_name }}ViewModel : I{{ resx_name }}ViewModel
-        {
-#pragma warning disable 0067
-			public event PropertyChangedEventHandler? PropertyChanged;
-#pragma warning restore 0067
-
-            public CultureInfo CultureInfo { get; } = CultureInfo.GetCultureInfo(""{{ implementation.language_code }}"");
-			{{ for property in implementation.properties }} 
-			public string {{ property.key }} { get; } = {{ property.value }};
-			{{ end }}
-		}
-		{{ end }}
-	}
+			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{resXImplementation.LanguageCode}"");");
+				foreach (var resXImplementationProperty in resXImplementation.Properties)
+				{
+					stringBuilder.AppendLine($"			public string {resXImplementationProperty.Key} {{ get; }} = {resXImplementationProperty.Value};");
+				}
+				stringBuilder.AppendLine("		}");
+			}
+			stringBuilder.AppendLine(@"	}
 }
-#nullable disable").Render(main);
+#nullable disable");
+			
+
+			return stringBuilder.ToString();
 
 
 			static ResXImplementation Create(

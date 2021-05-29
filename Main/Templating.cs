@@ -10,20 +10,6 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 {
 	public static class Templating
 	{
-		private record ResXInterface(IReadOnlyList<string> Keys);
-
-		private record ResXImplementationProperty(string Key, string Value);
-		private record ResXImplementation(
-			string Name, 
-			string LanguageCode, 
-			IReadOnlyList<ResXImplementationProperty> Properties);
-
-		private record Main(
-			string Namespace,
-			string Name,
-			ResXInterface Interface,
-			IReadOnlyList<ResXImplementation> Implementations);
-
 		public static string Render(
 			string @namespace,
 			string name,
@@ -126,30 +112,30 @@ namespace {@namespace}
 		}}
 ");
 			
-			foreach (var resXImplementation in implementations)
+			foreach (var implementation in implementations)
 			{
-				stringBuilder.AppendLine(@$"		private class {resXImplementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
+				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
 		{{
 #pragma warning disable 0067
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
-			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{resXImplementation.LanguageCode}"");
+			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");
 
-			public I{name}ViewModel Create() => new {resXImplementation.Name}{name}ViewModel();
+			public I{name}ViewModel Create() => new {implementation.Name}{name}ViewModel();
 		}}");
 			}
 			
-			foreach (var resXImplementation in implementations)
+			foreach (var implementation in implementations)
 			{
-				stringBuilder.AppendLine(@$"		private class {resXImplementation.Name}{name}ViewModel : I{name}ViewModel
+				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}ViewModel : I{name}ViewModel
         {{
 #pragma warning disable 0067
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
-			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{resXImplementation.LanguageCode}"");");
-				foreach (var resXImplementationProperty in resXImplementation.Properties)
+			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");");
+				foreach (var resXImplementationProperty in implementation.Properties)
 				{
 					stringBuilder.AppendLine($"			public string {resXImplementationProperty.Key} {{ get; }} = {resXImplementationProperty.Value};");
 				}
@@ -163,16 +149,16 @@ namespace {@namespace}
 			return stringBuilder.ToString();
 
 
-			static ResXImplementation Create(
+			static (string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) Create(
 				string name,
 				string languageCode,
 				IReadOnlyDictionary<string, string> propertyMapping)
 			{
-				return new(
+				return (
 					name,
 					languageCode,
 					propertyMapping
-						.Select(kvp => new ResXImplementationProperty(kvp.Key, ValueToLiteral(kvp.Value)))
+						.Select(kvp => (kvp.Key, ValueToLiteral(kvp.Value)))
 						.ToList());
 				
 				static string ValueToLiteral(string input)

@@ -21,14 +21,14 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			const string @namespace = "MrMeeseeks.ResXToViewModelGenerator";
 
 			const string resxExtension = ".resx";
-			var resxFileGroups = context.AdditionalFiles
+			IEnumerable<IGrouping<string,FileInfo>> resxFileGroups = context.AdditionalFiles
 				.Where(af => af.Path.EndsWith(resxExtension))
 				.Select(af => new FileInfo(af.Path))
 				.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')));
 
-			foreach (var resxFileGroup in resxFileGroups)
+			foreach (IGrouping<string,FileInfo> resxFileGroup in resxFileGroups)
 			{
-				var className = resxFileGroup.Key;
+				string className = resxFileGroup.Key;
 				
 				var defaultFileName = $"{resxFileGroup.Key}{resxExtension}";
 				if (resxFileGroup.FirstOrDefault(fi => fi.Name == defaultFileName) is not { } defaultFileInfo)

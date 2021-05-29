@@ -30,20 +30,20 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			{
 				string className = resxFileGroup.Key;
 				
-				var defaultFileName = $"{resxFileGroup.Key}{resxExtension}";
+				string defaultFileName = $"{resxFileGroup.Key}{resxExtension}";
 				if (resxFileGroup.FirstOrDefault(fi => fi.Name == defaultFileName) is not { } defaultFileInfo)
 					return;
 
-				var reader =
+				ResXResourceReader? reader =
 					new ResXResourceReader(defaultFileInfo.FullName)
 					{
 						UseResXDataNodes = true
 					};
 
-				var defaultKeyValuesInner = new Dictionary<string, string>();
-				var defaultKeyValues = new ReadOnlyDictionary<string, string>(defaultKeyValuesInner);
+				Dictionary<string, string> defaultKeyValuesInner = new ();
+				ReadOnlyDictionary<string, string> defaultKeyValues = new (defaultKeyValuesInner);
 					
-				foreach (var resXDataNode in reader
+				foreach (ResXDataNode resXDataNode in reader
 					.OfType<DictionaryEntry>()
 					.Select(de => de.Value)
 					.OfType<ResXDataNode>())
@@ -54,31 +54,29 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 					defaultKeyValuesInner.Add(resXDataNode.Name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
 				}
 
-				var localizations = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+				Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-				var localizationFiles = resxFileGroup
+				IEnumerable<(string Specifier, FileInfo FileInfo)> localizationFiles = resxFileGroup
 					.Where(fi => fi != defaultFileInfo)
 					.Select(fi => (Specifier: fi.Name.Substring(resxFileGroup.Key.Length, fi.Name.Length - resxFileGroup.Key.Length - resxExtension.Length).Trim('.'),
 						FileInfo: fi))
 					.Where(vt => DoesCultureExist(vt.Specifier));
 				
-				foreach (var vt in localizationFiles)
+				foreach ((string Specifier, FileInfo FileInfo) vt in localizationFiles)
 				{
 					if (localizations.ContainsKey(vt.Specifier))
 						continue;
-						//throw new Exception(
-						//	$"Multiple localization files with specifier '{vt.Specifier}' ('{className}').");
 					
-					var localizationReader =
-						new ResXResourceReader(vt.FileInfo.FullName)
+					ResXResourceReader localizationReader =
+						new (vt.FileInfo.FullName)
 						{
 							UseResXDataNodes = true
 						};
 
-					var localizationKeyValuesInner = new Dictionary<string, string>();
-					var localizationKeyValues = new ReadOnlyDictionary<string, string>(localizationKeyValuesInner);
+					Dictionary<string, string> localizationKeyValuesInner = new ();
+					ReadOnlyDictionary<string, string> localizationKeyValues = new (localizationKeyValuesInner);
 					
-					foreach (var resXDataNode in localizationReader
+					foreach (ResXDataNode resXDataNode in localizationReader
 						.OfType<DictionaryEntry>()
 						.Select(de => de.Value)
 						.OfType<ResXDataNode>())
@@ -94,7 +92,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 						new ReadOnlyDictionary<string, string>(
 							(defaultKeyValues
 								.Keys ?? Enumerable.Empty<string>())
-								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
+								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out string? value) ? value ?? "" : "")));
 				}
 				
 				context.AddSource(

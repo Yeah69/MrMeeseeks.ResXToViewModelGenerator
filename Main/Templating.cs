@@ -16,13 +16,13 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			IReadOnlyDictionary<string, string> defaultKeyValues,
 			IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> culturalKeyValues)
 		{
-			var keys = new ReadOnlyCollection<string>(defaultKeyValues.Keys.ToList());
-			var implementations = culturalKeyValues
+			ReadOnlyCollection<string> keys = new (defaultKeyValues.Keys.ToList());
+			List<(string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties)> implementations = culturalKeyValues
 				.Select(kvp => Create(kvp.Key.Replace("-", ""), kvp.Key, kvp.Value))
 				.Prepend(Create("Default", "iv", defaultKeyValues))
 				.ToList();
 
-			var stringBuilder = new StringBuilder();
+			StringBuilder stringBuilder = new ();
 			stringBuilder.AppendLine(@$"#nullable enable
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -44,7 +44,7 @@ namespace {@namespace}
 	public interface I{name}ViewModel : INotifyPropertyChanged
 	{{
 		CultureInfo CultureInfo {{ get; }}");
-			foreach (var key in keys)
+			foreach (string? key in keys)
 			{
 				stringBuilder.AppendLine($"		string {key} {{ get; }}");
 			}
@@ -77,7 +77,7 @@ namespace {@namespace}
 				new List<I{name}OptionViewModel>
 				{{");
 			
-			foreach (var resXImplementation in implementations)
+			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) resXImplementation in implementations)
 			{
 				stringBuilder.AppendLine($"					new {resXImplementation.Name }{name}OptionViewModel(),");
 			}
@@ -112,7 +112,7 @@ namespace {@namespace}
 		}}
 ");
 			
-			foreach (var implementation in implementations)
+			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) implementation in implementations)
 			{
 				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
 		{{
@@ -126,7 +126,7 @@ namespace {@namespace}
 		}}");
 			}
 			
-			foreach (var implementation in implementations)
+			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) implementation in implementations)
 			{
 				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}ViewModel : I{name}ViewModel
         {{
@@ -135,7 +135,7 @@ namespace {@namespace}
 #pragma warning restore 0067
 
 			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");");
-				foreach (var resXImplementationProperty in implementation.Properties)
+				foreach ((string Key, string Value) resXImplementationProperty in implementation.Properties)
 				{
 					stringBuilder.AppendLine($"			public string {resXImplementationProperty.Key} {{ get; }} = {resXImplementationProperty.Value};");
 				}
@@ -163,8 +163,8 @@ namespace {@namespace}
 				
 				static string ValueToLiteral(string input)
 				{
-					using var writer = new StringWriter();
-					using var provider = CodeDomProvider.CreateProvider("CSharp");
+					using StringWriter writer = new ();
+					using CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
 					provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
 					return writer.ToString();
 				}

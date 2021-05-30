@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -54,7 +55,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 					defaultKeyValuesInner.Add(resXDataNode.Name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
 				}
 
-				Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+				Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new ();
 
 				IEnumerable<(string Specifier, FileInfo FileInfo)> localizationFiles = resxFileGroup
 					.Where(fi => fi != defaultFileInfo)
@@ -113,14 +114,14 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 		}
 
 		public void Initialize(GeneratorInitializationContext context)
-		{
-			/*
-#if DEBUG
+        {
+			///*
+//#if DEBUG
 			if (!Debugger.IsAttached)
 			{
 				Debugger.Launch();
 			}
-#endif
+//#endif
 			//*/
 		}
 	}

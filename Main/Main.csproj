@@ -9,6 +9,7 @@
     <RootNamespace>MrMeeseeks.ResXToViewModelGenerator</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
     <PackageId>$(RootNamespace)</PackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
   </PropertyGroup>
 
   <PropertyGroup>

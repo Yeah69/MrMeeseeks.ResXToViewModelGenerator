@@ -1,8 +1,5 @@
-﻿using System.CodeDom;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -162,7 +159,7 @@ namespace {@namespace}
 						.ToList());
 				
 				static string ValueToLiteral(string input) => 
-					$"\"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(input, false)}\"";
+					Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(input, true);
 			}
 		}
 	}

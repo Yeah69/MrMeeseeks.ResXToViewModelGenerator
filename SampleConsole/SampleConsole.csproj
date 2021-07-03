@@ -8,9 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MrMeeseeks.ResXToViewModelGenerator\MrMeeseeks.ResXToViewModelGenerator.csproj"
-                        OutputItemType="Analyzer"
-                        ReferenceOutputAssembly="false" />
+        <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.17-alpha.0.2" />
     </ItemGroup>
 
     <ItemGroup>

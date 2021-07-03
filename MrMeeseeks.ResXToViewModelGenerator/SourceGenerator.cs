@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -115,13 +114,11 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 		public void Initialize(GeneratorInitializationContext context)
         {
-			///*
-//#if DEBUG
+			/*
 			if (!Debugger.IsAttached)
 			{
 				Debugger.Launch();
 			}
-//#endif
 			//*/
 		}
 	}

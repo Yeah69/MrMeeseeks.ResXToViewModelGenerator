@@ -161,13 +161,8 @@ namespace {@namespace}
 						.Select(kvp => (kvp.Key, ValueToLiteral(kvp.Value)))
 						.ToList());
 				
-				static string ValueToLiteral(string input)
-				{
-					using StringWriter writer = new ();
-					using CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-					provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
-					return writer.ToString();
-				}
+				static string ValueToLiteral(string input) => 
+					$"\"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(input, false)}\"";
 			}
 		}
 	}

@@ -13,5 +13,6 @@
         <TextBlock Text="{Binding CurrentTexts.Asdf}" />
         <TextBlock Text="{Binding CurrentTexts.Foo}" />
         <TextBlock Text="{Binding CurrentTexts.Yeah}" />
+        <TextBlock x:Name="Test" />
     </StackPanel>
 </Window>

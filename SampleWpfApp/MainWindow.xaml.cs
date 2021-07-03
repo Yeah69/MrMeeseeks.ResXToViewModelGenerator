@@ -2,8 +2,12 @@
 {
     public partial class MainWindow
     {
-        public MainWindow() => InitializeComponent();
-
-        public ICurrentTextsViewModel Localization { get; } = new CurrentTextsViewModel();
+        public MainWindow()
+        {
+            InitializeComponent();
+            //var asdf = new CurrentTextsViewModel()
+            //var blah = asdf;
+            //Test.Text = blah;
+        }
     }
 }

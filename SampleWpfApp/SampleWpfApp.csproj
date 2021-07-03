@@ -11,6 +11,10 @@
         <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <AdditionalFileItemNames>$(AdditionalFileItemNames);EmbeddedResource</AdditionalFileItemNames>
+    </PropertyGroup>
     
     <ItemGroup>
       <EmbeddedResource Update="Properties\Texts.resx">
@@ -19,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.17-alpha.0.11" />
+      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.18" />
     </ItemGroup>
 
 </Project>

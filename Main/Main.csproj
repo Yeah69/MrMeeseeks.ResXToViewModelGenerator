@@ -4,18 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <Title>$(RootNamespace)</Title>
     <PackageReleaseNotes>-/-</PackageReleaseNotes>
     <RootNamespace>MrMeeseeks.ResXToViewModelGenerator</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
-    <PackageId>$(RootNamespace)</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-    <AnalysisLevel>preview</AnalysisLevel>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>

@@ -18,7 +18,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 	{
 		public void Execute(GeneratorExecutionContext context)
 		{
-			const string @namespace = "MrMeeseeks.ResXToViewModelGenerator";
+			const string @namespace = $"{nameof(MrMeeseeks)}.{nameof(ResXToViewModelGenerator)}";
 
 			const string resxExtension = ".resx";
 			IEnumerable<IGrouping<string,FileInfo>> resxFileGroups = context.AdditionalFiles

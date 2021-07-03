@@ -10,6 +10,7 @@
         <Authors>Yeah69</Authors>
         <PackageIcon>Yeah69Logo_256.png</PackageIcon>
         <AssemblyName>$(RootNamespace)</AssemblyName>
+        <Product>$(RootNamespace)</Product>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,8 +25,8 @@
         <PackageVersion>$(MinVerVersion)</PackageVersion>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageId>$(AssemblyName)</PackageId>
-        <Product>$(AssemblyName)</Product>
+        <PackageId>$(RootNamespace)</PackageId>
+        <Title>$(RootNamespace)</Title>
         <Description>For further information and updates please visit the projects page.</Description>
     </PropertyGroup>
 

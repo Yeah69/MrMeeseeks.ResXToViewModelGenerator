@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.17-alpha.0.5" />
+      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.17-alpha.0.6" />
     </ItemGroup>
 
 </Project>

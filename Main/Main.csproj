@@ -8,6 +8,7 @@
     <PackageReleaseNotes>-/-</PackageReleaseNotes>
     <RootNamespace>MrMeeseeks.ResXToViewModelGenerator</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
+    <PackageId>$(RootNamespace)</PackageId>
   </PropertyGroup>
 
   <PropertyGroup>

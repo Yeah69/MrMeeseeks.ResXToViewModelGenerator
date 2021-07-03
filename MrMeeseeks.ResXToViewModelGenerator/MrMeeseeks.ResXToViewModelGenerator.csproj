@@ -42,16 +42,5 @@
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <AdditionalFileItemNames>$(AdditionalFileItemNames);EmbeddedResource</AdditionalFileItemNames>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <CompilerVisibleProperty Include="MSBuildProjectFullPath" />
-    <CompilerVisibleProperty Include="RootNamespace" />
-    <CompilerVisibleProperty Include="CustomToolNamespace" />
-    <CompilerVisibleItemMetadata Include="EmbeddedResource" MetadataName="CustomToolNamespace" />
-  </ItemGroup>
   
 </Project>

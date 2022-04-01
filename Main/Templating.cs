@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
@@ -13,7 +12,6 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			IReadOnlyDictionary<string, string> defaultKeyValues,
 			IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> culturalKeyValues)
 		{
-			ReadOnlyCollection<string> keys = new (defaultKeyValues.Keys.ToList());
 			List<(string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties)> implementations = culturalKeyValues
 				.Select(kvp => Create(kvp.Key.Replace("-", ""), kvp.Key, kvp.Value))
 				.Prepend(Create("Default", "iv", defaultKeyValues))
@@ -41,7 +39,7 @@ namespace {@namespace}
 	public interface I{name}ViewModel : INotifyPropertyChanged
 	{{
 		CultureInfo CultureInfo {{ get; }}");
-			foreach (string? key in keys)
+			foreach (string? key in implementations[0].Properties.Select(p => p.Key))
 			{
 				stringBuilder.AppendLine($"		string {key} {{ get; }}");
 			}

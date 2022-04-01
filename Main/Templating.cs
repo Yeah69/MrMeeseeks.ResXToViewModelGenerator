@@ -155,7 +155,7 @@ namespace {@namespace}
 					name,
 					languageCode,
 					propertyMapping
-						.Select(kvp => (kvp.Key, ValueToLiteral(kvp.Value)))
+						.Select(kvp => (kvp.Key.Replace(".", "_"), ValueToLiteral(kvp.Value)))
 						.ToList());
 				
 				static string ValueToLiteral(string input) => 

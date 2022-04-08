@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.17-alpha.0.11" />
+      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.24-alpha.0" />
     </ItemGroup>
 
 </Project>

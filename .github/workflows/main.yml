@@ -16,7 +16,7 @@ jobs:
       Solution_Name: MrMeeseeks.ResXToViewModelGenerator.sln                        # Replace with your solution name, i.e. MyWpfApp.sln.
       
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@main
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -27,7 +27,7 @@ jobs:
     - name: Build
       run: dotnet build .\MrMeeseeks.ResXToViewModelGenerator.sln --configuration Release --no-restore
     - name: Publish to NuGet
-      uses: brandedoutcast/publish-nuget@v2
+      uses: brandedoutcast/publish-nuget@master
       with:
         PROJECT_FILE_PATH: Main/Main.csproj
         VERSION_FILE_PATH: Directory.Build.props

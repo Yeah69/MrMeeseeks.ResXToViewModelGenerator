@@ -176,7 +176,7 @@ namespace {@namespace}
 			{
 				ISet<string> takenNames = new HashSet<string>(propertyMapping.Keys);
 				return (
-					name,
+					name.Replace("-", "_"), // Escape minuses of language codes for the names of types
 					languageCode,
 					propertyMapping
 						.Select(kvp => (kvp.Key, FindBackingFieldName(kvp.Key, takenNames), ValueToLiteral(kvp.Value)))

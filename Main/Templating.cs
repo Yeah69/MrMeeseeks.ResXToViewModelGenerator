@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -12,8 +13,8 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			IReadOnlyDictionary<string, string> defaultKeyValues,
 			IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> culturalKeyValues)
 		{
-			List<(string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties)> implementations = culturalKeyValues
-				.Select(kvp => Create(kvp.Key.Replace("-", ""), kvp.Key, kvp.Value))
+			var implementations = culturalKeyValues
+				.Select(kvp => Create(kvp.Key, kvp.Key, kvp.Value))
 				.Prepend(Create("Default", "iv", defaultKeyValues))
 				.ToList();
 
@@ -39,12 +40,21 @@ namespace {@namespace}
 	public interface I{name}ViewModel : INotifyPropertyChanged
 	{{
 		CultureInfo CultureInfo {{ get; }}");
-			foreach (string? key in implementations[0].Properties.Select(p => p.Key))
+			foreach (var propertyName in implementations[0].Properties.Select(p => p.Name))
 			{
-				stringBuilder.AppendLine($"		string {key} {{ get; }}");
+				stringBuilder.AppendLine($"		string {propertyName} {{ get; }}");
 			}
 			stringBuilder.AppendLine(@$"
+		ISettable{name}ViewModel AsSettable();
 	}}
+	public interface ISettable{name}ViewModel : INotifyPropertyChanged
+	{{");
+			foreach (var propertyName in implementations[0].Properties.Select(p => p.Name))
+			{
+				stringBuilder.AppendLine($"		string {propertyName} {{ set; }}");
+			}
+			stringBuilder.AppendLine(@$"
+    }}
 	
 	public interface I{name}OptionViewModel : INotifyPropertyChanged
 	{{
@@ -72,7 +82,7 @@ namespace {@namespace}
 				new List<I{name}OptionViewModel>
 				{{");
 			
-			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) resXImplementation in implementations)
+			foreach (var resXImplementation in implementations)
 			{
 				stringBuilder.AppendLine($"					new {resXImplementation.Name }{name}OptionViewModel(),");
 			}
@@ -107,7 +117,7 @@ namespace {@namespace}
 		}}
 ");
 			
-			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) implementation in implementations)
+			foreach (var implementation in implementations)
 			{
 				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
 		{{
@@ -121,20 +131,35 @@ namespace {@namespace}
 		}}");
 			}
 			
-			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) implementation in implementations)
+			foreach ((string Name, string LanguageCode, IReadOnlyList<(string Name, string BackingFieldName, string Value)> Properties) implementation in implementations)
 			{
-				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}ViewModel : I{name}ViewModel
+				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}ViewModel : I{name}ViewModel, ISettable{name}ViewModel
         {{
 #pragma warning disable 0067
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
 			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");");
-				foreach ((string Key, string Value) resXImplementationProperty in implementation.Properties)
+				foreach (var resXImplementationProperty in implementation.Properties)
 				{
-					stringBuilder.AppendLine($"			public string {resXImplementationProperty.Key} {{ get; }} = {resXImplementationProperty.Value};");
+					stringBuilder
+						.AppendLine($"			private string {resXImplementationProperty.BackingFieldName} = {resXImplementationProperty.Value};")
+						.AppendLine($"			public string {resXImplementationProperty.Name}")
+						.AppendLine($"			{{")
+						.AppendLine($"			    get => {resXImplementationProperty.BackingFieldName};")
+						.AppendLine($"			    set")
+						.AppendLine($"			    {{")
+						.AppendLine($"			        if({resXImplementationProperty.BackingFieldName} != value)")
+						.AppendLine($"			        {{")
+						.AppendLine($"			            {resXImplementationProperty.BackingFieldName} = value;")
+						.AppendLine($"			            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(\"{resXImplementationProperty.Name}\"));")
+						.AppendLine($"			        }}")
+						.AppendLine($"			    }}")
+						.AppendLine($"			}}");
 				}
-				stringBuilder.AppendLine("		}");
+				stringBuilder
+					.AppendLine($"		    public ISettable{name}ViewModel AsSettable() => this;")
+					.AppendLine("		}");
 			}
 			stringBuilder.AppendLine(@"	}
 }
@@ -144,20 +169,34 @@ namespace {@namespace}
 			return stringBuilder.ToString();
 
 
-			static (string Name, string LanguageCode, IReadOnlyList<(string Key, string Value)> Properties) Create(
+			static (string Name, string LanguageCode, IReadOnlyList<(string Name, string BackingFieldName, string Value)> Properties) Create(
 				string name,
 				string languageCode,
 				IReadOnlyDictionary<string, string> propertyMapping)
 			{
+				ISet<string> takenNames = new HashSet<string>(propertyMapping.Keys);
 				return (
 					name,
 					languageCode,
 					propertyMapping
-						.Select(kvp => (kvp.Key.Replace(".", "_"), ValueToLiteral(kvp.Value)))
+						.Select(kvp => (kvp.Key, FindBackingFieldName(kvp.Key, takenNames), ValueToLiteral(kvp.Value)))
 						.ToList());
 				
 				static string ValueToLiteral(string input) => 
 					Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(input, true);
+
+				static string FindBackingFieldName(string propertyName, ISet<string> takenNames)
+				{
+					var i = 0;
+					// ReSharper disable once RedundantAssignment
+					while ($"_{propertyName}{i++}" is {} backingFieldName && !takenNames.Contains(backingFieldName))
+					{
+						takenNames.Add(backingFieldName);
+						return backingFieldName;
+					}
+
+					throw new InvalidOperationException("Shouldn't be possible!");
+				}
 			}
 		}
 	}

@@ -94,7 +94,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 					var name = resXDataNode.Name.Replace("-", "_").Replace(".", "_");
 					if (localizationKeyValues.ContainsKey(name))
 						throw new Exception($"ResXDataNode with name '{resXDataNode.Name}{(resXDataNode.Name != name ? $"(\"{name})\"" : "")}' in localization resx file with specifier '{specifier}' ('{className}') is contained multiple times.");
-					localizationKeyValuesInner.Add(resXDataNode.Name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
+					localizationKeyValuesInner.Add(name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
 				}
 
 				return localizationKeyValues;

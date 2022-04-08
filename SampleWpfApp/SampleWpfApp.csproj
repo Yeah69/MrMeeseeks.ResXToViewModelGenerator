@@ -4,7 +4,7 @@
         <RootNamespace>MrMeeseeks.ResXToViewModelGenerator.SampleWpfApp</RootNamespace>
         <AssemblyName>SampleWpfApp</AssemblyName>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>net6.0-windows</TargetFramework>
         <LangVersion>preview</LangVersion>
         <UseWPF>true</UseWPF>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

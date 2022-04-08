@@ -12,8 +12,6 @@ ProjectSection(SolutionItems) = preProject
 	LICENSE = LICENSE
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWpfApp", "SampleWpfApp\SampleWpfApp.csproj", "{7A20FBB2-7543-4A7A-A352-5A89B64E8A87}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsole", "SampleConsole\SampleConsole.csproj", "{42C92B78-B2AD-49C1-861D-A47214604875}"
 EndProject
 Global
@@ -26,10 +24,6 @@ Global
 		{210EF250-4028-42AE-9BAB-80C22F236816}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{210EF250-4028-42AE-9BAB-80C22F236816}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{210EF250-4028-42AE-9BAB-80C22F236816}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7A20FBB2-7543-4A7A-A352-5A89B64E8A87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A20FBB2-7543-4A7A-A352-5A89B64E8A87}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A20FBB2-7543-4A7A-A352-5A89B64E8A87}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A20FBB2-7543-4A7A-A352-5A89B64E8A87}.Release|Any CPU.Build.0 = Release|Any CPU
 		{42C92B78-B2AD-49C1-861D-A47214604875}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{42C92B78-B2AD-49C1-861D-A47214604875}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42C92B78-B2AD-49C1-861D-A47214604875}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -110,7 +110,7 @@ namespace {@namespace}
 
 		public I{name}ViewModel Current{name} => _current{name};
 
-		public I{name}ViewModel Key{name}ViewModel => new ValuesToKeys{name}ViewModel();
+		public I{name}ViewModel ValuesToKeys{name}ViewModel => new Key{name}ViewModel();
 
 		public IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
 

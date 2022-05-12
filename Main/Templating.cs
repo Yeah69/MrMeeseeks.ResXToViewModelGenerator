@@ -16,6 +16,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 			var implementations = culturalKeyValues
 				.Select(kvp => Create(kvp.Key, kvp.Key, kvp.Value))
 				.Prepend(Create("Default", "iv", defaultKeyValues))
+				.Append(Create("Key", "iv", defaultKeyValues.ToDictionary(kvp => kvp.Key, kvp => kvp.Key)))
 				.ToList();
 
 			StringBuilder stringBuilder = new ();
@@ -82,7 +83,7 @@ namespace {@namespace}
 				new List<I{name}OptionViewModel>
 				{{");
 			
-			foreach (var resXImplementation in implementations)
+			foreach (var resXImplementation in implementations.Take(implementations.Count - 1))
 			{
 				stringBuilder.AppendLine($"					new {resXImplementation.Name }{name}OptionViewModel(),");
 			}
@@ -109,6 +110,8 @@ namespace {@namespace}
 
 		public I{name}ViewModel Current{name} => _current{name};
 
+		public I{name}ViewModel Key{name}ViewModel => new Key{name}ViewModel();
+
 		public IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
 
 		public interface I{name}OptionViewModelInternal : I{name}OptionViewModel
@@ -117,7 +120,7 @@ namespace {@namespace}
 		}}
 ");
 			
-			foreach (var implementation in implementations)
+			foreach (var implementation in implementations.Take(implementations.Count - 1))
 			{
 				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
 		{{

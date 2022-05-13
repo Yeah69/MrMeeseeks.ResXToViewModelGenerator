@@ -70,7 +70,7 @@ namespace {@namespace}
         
 		IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
 
-		 I{name}ViewModel ValuesToKeys{name}ViewModel {{ get; }}
+		void ShowKeys();
 	}}
         
 	public sealed class Current{name}ViewModel : ICurrent{name}ViewModel
@@ -112,7 +112,7 @@ namespace {@namespace}
 
 		public I{name}ViewModel Current{name} => _current{name};
 
-		public I{name}ViewModel ValuesToKeys{name}ViewModel => new Key{name}ViewModel();
+		public void ShowKeys() => CurrentOption = new Key{name}OptionViewModel();
 
 		public IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
 
@@ -122,7 +122,7 @@ namespace {@namespace}
 		}}
 ");
 			
-			foreach (var implementation in implementations.Take(implementations.Count - 1))
+			foreach (var implementation in implementations)
 			{
 				stringBuilder.AppendLine(@$"		private class {implementation.Name}{name}OptionViewModel : I{name}OptionViewModelInternal
 		{{

@@ -69,6 +69,8 @@ namespace {@namespace}
 		I{name}OptionViewModel CurrentOption {{ get; set; }}
         
 		IReadOnlyList<I{name}OptionViewModel> AvailableOptions {{ get; }}
+
+		 I{name}ViewModel ValuesToKeys{name}ViewModel {{ get; }}
 	}}
         
 	public sealed class Current{name}ViewModel : ICurrent{name}ViewModel

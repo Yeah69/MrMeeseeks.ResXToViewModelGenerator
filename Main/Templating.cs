@@ -131,7 +131,21 @@ namespace {@namespace}
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
-			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");
+			public CultureInfo CultureInfo
+			{{
+				get
+				{{
+					try
+					{{
+						return CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");
+					}}
+					catch (Exception)
+					{{
+						// ignored
+					}}
+					return CultureInfo.InvariantCulture;
+				}}
+			}} 
 
 			public I{name}ViewModel Create() => new {implementation.Name}{name}ViewModel();
 		}}");

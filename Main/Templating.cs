@@ -21,6 +21,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 			StringBuilder stringBuilder = new ();
 			stringBuilder.AppendLine(@$"#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -144,7 +145,22 @@ namespace {@namespace}
 			public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore 0067
 
-			public CultureInfo CultureInfo {{ get; }} = CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");");
+			public CultureInfo CultureInfo
+			{{
+				get
+				{{
+					try
+					{{
+						return CultureInfo.GetCultureInfo(""{implementation.LanguageCode}"");
+					}}
+					catch (Exception)
+					{{
+						// ignored
+					}}
+					return CultureInfo.InvariantCulture;
+				}}
+			}} 
+");
 				foreach (var resXImplementationProperty in implementation.Properties)
 				{
 					stringBuilder
@@ -198,11 +214,11 @@ namespace {@namespace}
 					{
 						takenNames.Add(backingFieldName);
 						return backingFieldName;
-					}
+			}
 
 					throw new InvalidOperationException("Shouldn't be possible!");
-				}
-			}
 		}
+	}
+}
 	}
 }

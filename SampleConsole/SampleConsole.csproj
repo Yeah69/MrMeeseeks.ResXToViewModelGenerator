@@ -12,7 +12,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.24" />
+        <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.33" />
     </ItemGroup>
 
     <ItemGroup>

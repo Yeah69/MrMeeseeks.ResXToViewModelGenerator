@@ -26,42 +26,68 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 				.AdditionalTextsProvider
 				.Where(text => text.Path.EndsWith(".resx"))
 				.Collect()
-				.SelectMany((texts, _) => texts
-					.Select(text => new FileInfo(text.Path))
-					.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')))
-					.Select(group =>
-					{
-						var defaultFileName = $"{group.Key}{resxExtension}";
-						return (
-							ClassName: group.Key,
-							DefaultFile: group.FirstOrDefault(fi => fi.Name == defaultFileName),
-							Files: group);
-					})
-					.Where(tuple => tuple.DefaultFile is not null)
-					.OfType<(string, FileInfo, IGrouping<string, FileInfo>)>()
-					.ToImmutableArray())
-				.Select<(string ClassName, FileInfo DefaultFile, IGrouping<string, FileInfo> Files), (string, SourceText)>((tuple, _) =>
+				.SelectMany((texts, _) =>
+				{
+					return texts
+						.Select(text => new FileInfo(text.Path))
+						.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')))
+						.Select(group =>
+						{
+							var defaultFileName = $"{group.Key}{resxExtension}";
+							return new IncrementalPipeItemMonad<(string ClassName, FileInfo? DefaultFile, IGrouping<string, FileInfo> Files)>((
+								ClassName: group.Key,
+								DefaultFile: group.FirstOrDefault(fi => fi.Name == defaultFileName),
+								Files: group));
+						})
+						.Select(monad => monad.Bind((tuple, processDiagnostic) =>
+						{
+							if (tuple.DefaultFile is null)
+							{
+								processDiagnostic(CreateDiagnostic(
+									1, 
+									$"No default file \"{tuple.ClassName}{resxExtension}\" found for ResX family \"{tuple.ClassName}\".", 
+									DiagnosticSeverity.Error));
+							}
+
+							return tuple;
+						}))
+						.OfType<IncrementalPipeItemMonad<(string ClassName, FileInfo DefaultFile, IGrouping<string, FileInfo> Files)>>()
+						.ToImmutableArray();
+				})
+				.Select((monad, _) => monad.Bind((tuple, processDiagnostic) =>
 				{
 					var className = tuple.ClassName;
 					var defaultFileInfo = tuple.DefaultFile;
 					var resxFileGroup = tuple.Files;
 
-					var defaultKeyValues = GetLocalizationKeyValues(defaultFileInfo, "(default)", className);
+					if (!TryGetLocalizationKeyValues(defaultFileInfo, "(default)", className, processDiagnostic, out var defaultKeyValues))
+						return (FileName: "", Source: SourceText.From("", Encoding.UTF8));
 
 					Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new ();
 
-					var localizationFiles = resxFileGroup
+					var localizationFilesGroups = resxFileGroup
 						.Where(fi => fi != defaultFileInfo)
-						.Select(fi => (Specifier: fi.Name.Substring(className.Length, fi.Name.Length - className.Length - resxExtension.Length).Trim('.'),
+						.Select(fi => (
+							Specifier: fi.Name.Substring(className.Length, fi.Name.Length - className.Length - resxExtension.Length).Trim('.'),
 							FileInfo: fi))
-						.Where(vt => DoesCultureExist(vt.Specifier));
+						.GroupBy(vt => DoesCultureExist(vt.Specifier))
+						.ToArray();
+					
+					foreach (var (specifier, file) in localizationFilesGroups.Where(g => !g.Key).SelectMany(g => g))
+					{
+						processDiagnostic(CreateDiagnostic(
+							2,
+							$"Invalid culture specifier \"{specifier}\" on file \"{file.Name}\" found for ResX family \"{className}\". It'll be ignored.",
+							DiagnosticSeverity.Warning));
+					}
 				
-					foreach (var (specifier, file) in localizationFiles)
+					foreach (var (specifier, file) in localizationFilesGroups.Where(g => g.Key).SelectMany(g => g))
 					{
 						if (localizations.ContainsKey(specifier))
 							continue;
-
-						var localizationKeyValues = GetLocalizationKeyValues(file, specifier, className);
+						
+						if (!TryGetLocalizationKeyValues(file, specifier, className, processDiagnostic, out var localizationKeyValues))
+							return (FileName: "", Source: SourceText.From("", Encoding.UTF8));
 					
 						localizations.Add(
 							specifier,
@@ -71,18 +97,19 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
 					}
 					
-					return ($"{@namespace}.{className}.g.cs", 
-						SourceText.From(
+					return (FileName: $"{@namespace}.{className}.g.cs", 
+						Source: SourceText.From(
 							Templating.Render(
 								@namespace,
 								className,
 								defaultKeyValues,
 								new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(localizations)), 
 							Encoding.UTF8));
-				});
+				}));
 			
-			context.RegisterSourceOutput(provider, (sourceProductionContext, sourceDescription) => 
-				sourceProductionContext.AddSource(sourceDescription.Item1, sourceDescription.Item2));
+			context.RegisterSourceOutput(provider, (sourceProductionContext, monad) => 
+				monad.Sink(sourceProductionContext, sourceDescription => 
+					sourceProductionContext.AddSource(sourceDescription.FileName, sourceDescription.Source)));
 			return;
 
 			// https://stackoverflow.com/a/16476935/4871837 Thanks
@@ -90,16 +117,17 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 				.GetCultures(CultureTypes.AllCultures)
 				.Any(culture => string.Equals(culture.Name, cultureName, StringComparison.CurrentCultureIgnoreCase));
 
-			static IReadOnlyDictionary<string, string> GetLocalizationKeyValues(FileInfo localizationFile, string specifier, string className)
+			static bool TryGetLocalizationKeyValues(
+				FileInfo localizationFile,
+				string specifier, 
+				string className,
+				Action<Diagnostic> processDiagnostic,
+				out IReadOnlyDictionary<string, string> localizationKeyValues)
 			{
-				ResXResourceReader localizationReader =
-					new (localizationFile.FullName)
-					{
-						UseResXDataNodes = true
-					};
+				ResXResourceReader localizationReader = new (localizationFile.FullName) { UseResXDataNodes = true };
 				
 				Dictionary<string, string> localizationKeyValuesInner = new ();
-				ReadOnlyDictionary<string, string> localizationKeyValues = new (localizationKeyValuesInner);
+				ReadOnlyDictionary<string, string> temp = new (localizationKeyValuesInner);
 				
 				foreach (var resXDataNode in localizationReader
 					         .OfType<DictionaryEntry>()
@@ -107,13 +135,41 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 					         .OfType<ResXDataNode>())
 				{
 					var name = resXDataNode.Name.Replace("-", "_").Replace(".", "_");
-					if (localizationKeyValues.ContainsKey(name))
-						throw new Exception($"ResXDataNode with name '{resXDataNode.Name}{(resXDataNode.Name != name ? $"(\"{name})\"" : "")}' in localization resx file with specifier '{specifier}' ('{className}') is contained multiple times.");
+					if (temp.ContainsKey(name))
+					{
+						processDiagnostic(CreateDiagnostic(
+							3,
+							$"ResXDataNode with name '{resXDataNode.Name}{(resXDataNode.Name != name ? $"(\"{name})\"" : "")}' in localization resx file with specifier '{specifier}' ('{className}') is contained multiple times.",
+							DiagnosticSeverity.Error));
+						localizationKeyValues = new Dictionary<string, string>();
+						return false;
+					}
 					localizationKeyValuesInner.Add(name, resXDataNode.GetValue((ITypeResolutionService?) null).ToString() ?? "");
 				}
 
-				return localizationKeyValues;
+				localizationKeyValues = temp;
+				return true;
 			}
+		}
+		
+		private static Diagnostic CreateDiagnostic(int id, string message, DiagnosticSeverity severity)
+		{
+			return Diagnostic.Create(
+				new DiagnosticDescriptor(
+					$"RX2VM{id:D3}",
+					severity switch
+					{
+						DiagnosticSeverity.Error => "Error",
+						DiagnosticSeverity.Warning => "Warning",
+						DiagnosticSeverity.Info => "Info",
+						DiagnosticSeverity.Hidden => "Hidden",
+						_ => throw new ArgumentOutOfRangeException(nameof(severity), severity, null)
+					},
+					message,
+					"ResXToViewModelGenerator",
+					severity,
+					true),
+				Location.None);
 		}
 	}
 }

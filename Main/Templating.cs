@@ -228,11 +228,11 @@ namespace {@namespace}
 					{
 						takenNames.Add(backingFieldName);
 						return backingFieldName;
-			}
+					}
 
 					throw new InvalidOperationException("Shouldn't be possible!");
+				}
+			}
 		}
-	}
-}
 	}
 }

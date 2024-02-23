@@ -2,13 +2,12 @@
 {
     public partial class MainWindow
     {
+        public CurrentTextsViewModel Localization { get; private set; }
+        
         public MainWindow()
         {
+            Localization = new CurrentTextsViewModel();
             InitializeComponent();
-            new CurrentTextsViewModel().CurrentTexts.AsSettable().Foo = "buz";
-            //var asdf = new CurrentTextsViewModel()
-            //var blah = asdf;
-            //Test.Text = blah;
         }
     }
 }

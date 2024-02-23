@@ -4,7 +4,7 @@
         <RootNamespace>MrMeeseeks.ResXToViewModelGenerator.SampleWpfApp</RootNamespace>
         <AssemblyName>SampleWpfApp</AssemblyName>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net6.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <LangVersion>preview</LangVersion>
         <UseWPF>true</UseWPF>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MrMeeseeks.ResXToViewModelGenerator" Version="69.0.24-alpha.0" />
+      <ProjectReference Include="..\Main\Main.csproj" OutputItemType="Analyzer" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
 using System.Globalization;
@@ -14,62 +15,76 @@ using Microsoft.CodeAnalysis.Text;
 namespace MrMeeseeks.ResXToViewModelGenerator
 {
 	[Generator]
-	public class SourceGenerator : ISourceGenerator
+	public class SourceGenerator : IIncrementalGenerator
 	{
-		public void Execute(GeneratorExecutionContext context)
+		public void Initialize(IncrementalGeneratorInitializationContext context)
 		{
-			const string @namespace = $"{nameof(MrMeeseeks)}.{nameof(ResXToViewModelGenerator)}";
-
 			const string resxExtension = ".resx";
-			IEnumerable<IGrouping<string,FileInfo>> resxFileGroups = context.AdditionalFiles
-				.Where(af => af.Path.EndsWith(resxExtension))
-				.Select(af => new FileInfo(af.Path))
-				.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')));
-
-			foreach (var resxFileGroup in resxFileGroups)
-			{
-				var className = resxFileGroup.Key;
-				
-				var defaultFileName = $"{resxFileGroup.Key}{resxExtension}";
-				if (resxFileGroup.FirstOrDefault(fi => fi.Name == defaultFileName) is not { } defaultFileInfo)
-					return;
-
-				var defaultKeyValues = GetLocalizationKeyValues(defaultFileInfo, "(default)", className);
-
-				Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new ();
-
-				var localizationFiles = resxFileGroup
-					.Where(fi => fi != defaultFileInfo)
-					.Select(fi => (Specifier: fi.Name.Substring(resxFileGroup.Key.Length, fi.Name.Length - resxFileGroup.Key.Length - resxExtension.Length).Trim('.'),
-						FileInfo: fi))
-					.Where(vt => DoesCultureExist(vt.Specifier));
-				
-				foreach (var (specifier, file) in localizationFiles)
-				{
-					if (localizations.ContainsKey(specifier))
-						continue;
-
-					var localizationKeyValues = GetLocalizationKeyValues(file, specifier, className);
-					
-					localizations.Add(
-						specifier,
-						new ReadOnlyDictionary<string, string>(
-							(defaultKeyValues
-								.Keys ?? Enumerable.Empty<string>())
-								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
-				}
-				
-				context.AddSource(
-					$"{@namespace}.{className}.g.cs", 
-					SourceText.From(
-						Templating.Render(
-							@namespace,
-							className,
-							defaultKeyValues,
-							new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(localizations)), 
-						Encoding.UTF8));
-			}
+			const string @namespace = $"{nameof(MrMeeseeks)}.{nameof(ResXToViewModelGenerator)}";
 			
+			var provider = context
+				.AdditionalTextsProvider
+				.Where(text => text.Path.EndsWith(".resx"))
+				.Collect()
+				.SelectMany((texts, _) => texts
+					.Select(text => new FileInfo(text.Path))
+					.GroupBy(fi => fi.Name.Substring(0, fi.Name.IndexOf('.')))
+					.Select(group =>
+					{
+						var defaultFileName = $"{group.Key}{resxExtension}";
+						return (
+							ClassName: group.Key,
+							DefaultFile: group.FirstOrDefault(fi => fi.Name == defaultFileName),
+							Files: group);
+					})
+					.Where(tuple => tuple.DefaultFile is not null)
+					.OfType<(string, FileInfo, IGrouping<string, FileInfo>)>()
+					.ToImmutableArray())
+				.Select<(string ClassName, FileInfo DefaultFile, IGrouping<string, FileInfo> Files), (string, SourceText)>((tuple, _) =>
+				{
+					var className = tuple.ClassName;
+					var defaultFileInfo = tuple.DefaultFile;
+					var resxFileGroup = tuple.Files;
+
+					var defaultKeyValues = GetLocalizationKeyValues(defaultFileInfo, "(default)", className);
+
+					Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new ();
+
+					var localizationFiles = resxFileGroup
+						.Where(fi => fi != defaultFileInfo)
+						.Select(fi => (Specifier: fi.Name.Substring(className.Length, fi.Name.Length - className.Length - resxExtension.Length).Trim('.'),
+							FileInfo: fi))
+						.Where(vt => DoesCultureExist(vt.Specifier));
+				
+					foreach (var (specifier, file) in localizationFiles)
+					{
+						if (localizations.ContainsKey(specifier))
+							continue;
+
+						var localizationKeyValues = GetLocalizationKeyValues(file, specifier, className);
+					
+						localizations.Add(
+							specifier,
+							new ReadOnlyDictionary<string, string>(
+								(defaultKeyValues
+									.Keys ?? Enumerable.Empty<string>())
+								.ToDictionary(k => k, k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
+					}
+					
+					return ($"{@namespace}.{className}.g.cs", 
+						SourceText.From(
+							Templating.Render(
+								@namespace,
+								className,
+								defaultKeyValues,
+								new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(localizations)), 
+							Encoding.UTF8));
+				});
+			
+			context.RegisterSourceOutput(provider, (sourceProductionContext, sourceDescription) => 
+				sourceProductionContext.AddSource(sourceDescription.Item1, sourceDescription.Item2));
+			return;
+
 			// https://stackoverflow.com/a/16476935/4871837 Thanks
 			static bool DoesCultureExist(string cultureName) => CultureInfo
 				.GetCultures(CultureTypes.AllCultures)
@@ -99,16 +114,6 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 				return localizationKeyValues;
 			}
-		}
-
-		public void Initialize(GeneratorInitializationContext context)
-        {
-			/*
-			if (!Debugger.IsAttached)
-			{
-				Debugger.Launch();
-			}
-			//*/
 		}
 	}
 }

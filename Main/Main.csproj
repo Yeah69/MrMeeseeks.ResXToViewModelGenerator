@@ -33,6 +33,9 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    
+    <PackageReference Include="MrMeeseeks.IncrementalMonad" Version="69.0.0" PrivateAssets="all" GeneratePathProperty="true" />
+    <None Include="$(PkgMrMeeseeks_IncrementalMonad)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
     <PackageReference Include="SoftCircuits.CsvParser" Version="4.1.0" PrivateAssets="all" GeneratePathProperty="true" />
     <None Include="$(PkgSoftCircuits_CsvParser)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -46,6 +49,7 @@
 
   <Target Name="GetDependencyTargetPaths">
     <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(PkgMrMeeseeks_IncrementalMonad)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PkgSoftCircuits_CsvParser)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using MrMeeseeks.IncrementalMonad;
 
 namespace MrMeeseeks.ResXToViewModelGenerator
 {
@@ -33,7 +34,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 						{
 							var defaultResxFileName = $"{group.Key}{resxExtension}";
 							var defaultCsvFileName = $"{group.Key}{csvExtension}";
-							return new IncrementalPipeItemMonad<(string ClassName, FileInfo? DefaultFile,
+							return new IncrementalMonad<(string ClassName, FileInfo? DefaultFile,
 								IGrouping<string, FileInfo> Files)>((
 								ClassName: group.Key,
 								DefaultFile: group.FirstOrDefault(fi =>
@@ -63,8 +64,7 @@ namespace MrMeeseeks.ResXToViewModelGenerator
 
 							return tuple;
 						}))
-						.OfType<IncrementalPipeItemMonad<(string ClassName, FileInfo DefaultFile,
-							IGrouping<string, FileInfo> Files)>>()
+						.OfType<IncrementalMonad<(string ClassName, FileInfo DefaultFile, IGrouping<string, FileInfo> Files)>>()
 						.ToImmutableArray();
 				})
 				.Select((monad, _) => monad.Bind((tuple, processDiagnostic) =>

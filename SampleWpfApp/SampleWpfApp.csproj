@@ -17,9 +17,18 @@
     </PropertyGroup>
     
     <ItemGroup>
-      <EmbeddedResource Update="Properties\Texts.resx">
+      <EmbeddedResource Update="Properties\ResXTexts.resx">
         <LastGenOutput>Texts.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+      <None Remove="Properties\TextsTexts.csv" />
+      <None Remove="Properties\TextsTexts.de.csv" />
+      <None Remove="Properties\TextsTexts.en.csv" />
+      <None Remove="Properties\CsvTexts.csv" />
+      <EmbeddedResource Include="Properties\CsvTexts.csv" />
+      <None Remove="Properties\CsvTexts.de.csv" />
+      <EmbeddedResource Include="Properties\CsvTexts.de.csv" />
+      <None Remove="Properties\CsvTexts.en.csv" />
+      <EmbeddedResource Include="Properties\CsvTexts.en.csv" />
     </ItemGroup>
 
     <ItemGroup>

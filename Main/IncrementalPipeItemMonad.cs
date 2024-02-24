@@ -39,7 +39,7 @@ public class IncrementalPipeItemMonad<T>
         {
             ProcessDiagnostic(Diagnostic.Create(
                 new DiagnosticDescriptor(
-                    "0",
+                    "MONAD99",
                     "Error",
                     $"Unexpected error: {e.Message}",
                     "ResXToViewModelGenerator",

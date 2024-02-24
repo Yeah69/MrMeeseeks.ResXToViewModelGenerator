@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Main": {
+    "Main_SampleWpfApp": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\SampleWpfApp\\SampleWpfApp.csproj"
     }

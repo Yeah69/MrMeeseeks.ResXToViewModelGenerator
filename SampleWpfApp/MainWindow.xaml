@@ -6,13 +6,20 @@
         mc:Ignorable="d"
         x:Name="This"
         Title="MainWindow" Height="450" Width="800">
-    <StackPanel DataContext="{Binding Localization, ElementName=This}">
-        <ComboBox ItemsSource="{Binding AvailableOptions}"
-                  SelectedItem="{Binding CurrentOption}"
-                  DisplayMemberPath="CultureInfo.Name"/>
-        <TextBlock Text="{Binding CurrentTexts.Asdf}" />
-        <TextBlock Text="{Binding CurrentTexts.Foo}" />
-        <TextBlock Text="{Binding CurrentTexts.Yeah}" />
-        <TextBlock x:Name="Test" />
+    <StackPanel>
+        <StackPanel DataContext="{Binding LocalizationResX, ElementName=This}">
+            <ComboBox ItemsSource="{Binding AvailableOptions}"
+                      SelectedItem="{Binding CurrentOption}"
+                      DisplayMemberPath="CultureInfo.Name"/>
+            <TextBlock Text="{Binding CurrentResXTexts.Asdf}" />
+            <TextBlock Text="{Binding CurrentResXTexts.Foo}" />
+            <TextBlock Text="{Binding CurrentResXTexts.Yeah}" />
+        </StackPanel>
+        <StackPanel DataContext="{Binding LocalizationCsv, ElementName=This}">
+            <ComboBox ItemsSource="{Binding AvailableOptions}"
+                      SelectedItem="{Binding CurrentOption}"
+                      DisplayMemberPath="CultureInfo.Name"/>
+            <TextBlock Text="{Binding CurrentCsvTexts.key}" />
+        </StackPanel>
     </StackPanel>
 </Window>

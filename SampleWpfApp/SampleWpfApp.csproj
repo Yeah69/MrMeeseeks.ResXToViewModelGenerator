@@ -20,6 +20,9 @@
       <EmbeddedResource Update="Properties\ResXTexts.resx">
         <LastGenOutput>Texts.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+      <EmbeddedResource Include="Properties\JsonTexts.de.json" />
+      <EmbeddedResource Include="Properties\JsonTexts.en.json" />
+      <EmbeddedResource Include="Properties\JsonTexts.json" />
       <None Remove="Properties\TextsTexts.csv" />
       <None Remove="Properties\TextsTexts.de.csv" />
       <None Remove="Properties\TextsTexts.en.csv" />

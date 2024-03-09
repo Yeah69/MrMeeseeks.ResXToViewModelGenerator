@@ -21,5 +21,19 @@
                       DisplayMemberPath="CultureInfo.Name"/>
             <TextBlock Text="{Binding CurrentCsvTexts.key}" />
         </StackPanel>
+        <StackPanel DataContext="{Binding LocalizationJson, ElementName=This}">
+            <ComboBox ItemsSource="{Binding AvailableOptions}"
+                      SelectedItem="{Binding CurrentOption}"
+                      DisplayMemberPath="CultureInfo.Name"/>
+            <TextBlock Text="{Binding CurrentJsonTexts.boolean_key}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.empty_string_translation}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.key_with_description}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.key_with_line_break}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.nested_deeply_key}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.nested_key}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.null_translation}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.simple_key}" />
+            <TextBlock Text="{Binding CurrentJsonTexts.unverified_key}" />
+        </StackPanel>
     </StackPanel>
 </Window>

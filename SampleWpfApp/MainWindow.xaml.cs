@@ -2,13 +2,15 @@
 {
     public partial class MainWindow
     {
-        public CurrentResXTextsViewModel LocalizationResX { get; private set; }
-        public CurrentCsvTextsViewModel LocalizationCsv { get; private set; }
+        public CurrentResXTextsViewModel LocalizationResX { get; }
+        public CurrentCsvTextsViewModel LocalizationCsv { get; }
+        public CurrentJsonTextsViewModel LocalizationJson { get; }
         
         public MainWindow()
         {
             LocalizationResX = new CurrentResXTextsViewModel();
             LocalizationCsv = new CurrentCsvTextsViewModel();
+            LocalizationJson = new CurrentJsonTextsViewModel();
             InitializeComponent();
         }
     }

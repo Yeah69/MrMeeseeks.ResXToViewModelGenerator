@@ -1,0 +1,11 @@
+{
+  "boolean_key": "--- wahr\n",
+  "empty_string_translation": "",
+  "key_with_description": "Schau her! Dieser Schlüssel hat eine Beschreibung! (Zumindest in manchen Formaten)",
+  "key_with_line-break": "Diese Übersetzung enthält\neinen Zeilenumbruch.",
+  "nested.deeply.key": "Wow, dieser Schlüssel ist sogar tiefer eingebettet.",
+  "nested.key": "Dieser Schlüssel ist in einem Namensraum eingebettet.",
+  "null_translation": null,
+  "simple_key": "Einfach nur ein einfacher Schlüssel mit einer einfachen Nachricht. Einfach so.",
+  "unverified_key": "Diese Übersetzung ist noch nicht geprüft und wartet darauf. (In manchen Formaten exportieren wir diesen Zustand eben so)"
+}

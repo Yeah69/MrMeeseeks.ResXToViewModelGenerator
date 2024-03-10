@@ -6,6 +6,11 @@
   "nested.deeply.key": "Wow, dieser Schlüssel ist sogar tiefer eingebettet.",
   "nested.key": "Dieser Schlüssel ist in einem Namensraum eingebettet.",
   "null_translation": null,
+  "pluralized_key": {
+    "one": "Nur eine Pluralisierung gefunden.",
+    "other": "Boah, du hast %s Pluralisierungen!",
+    "zero": "Du hast keine Pluralisierungen."
+  },
   "simple_key": "Einfach nur ein einfacher Schlüssel mit einer einfachen Nachricht. Einfach so.",
   "unverified_key": "Diese Übersetzung ist noch nicht geprüft und wartet darauf. (In manchen Formaten exportieren wir diesen Zustand eben so)"
 }

@@ -84,7 +84,7 @@ public class SourceGenerator : IIncrementalGenerator
 					    out var defaultKeyValues))
 					return (FileName: "", Source: SourceText.From("", Encoding.UTF8));
 
-				Dictionary<string, IReadOnlyDictionary<string, string>> localizations = new();
+				Dictionary<string, IReadOnlyDictionary<string, IValue>> localizations = new();
 
 				var localizationFilesGroups = resxFileGroup
 					.Where(fi => fi != defaultFileInfo)
@@ -118,11 +118,11 @@ public class SourceGenerator : IIncrementalGenerator
 
 					localizations.Add(
 						specifier,
-						new ReadOnlyDictionary<string, string>(
+						new ReadOnlyDictionary<string, IValue>(
 							(defaultKeyValues
 								.Keys ?? Enumerable.Empty<string>())
 							.ToDictionary(k => k,
-								k => localizationKeyValues.TryGetValue(k, out var value) ? value ?? "" : "")));
+								k => localizationKeyValues.TryGetValue(k, out var value) ? value : new PlainString(""))));
 				}
 
 				return (FileName: $"{@namespace}.{className}.g.cs",
@@ -131,7 +131,7 @@ public class SourceGenerator : IIncrementalGenerator
 							@namespace,
 							className,
 							defaultKeyValues,
-							new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(localizations)),
+							new ReadOnlyDictionary<string, IReadOnlyDictionary<string, IValue>>(localizations)),
 						Encoding.UTF8));
 			}));
 

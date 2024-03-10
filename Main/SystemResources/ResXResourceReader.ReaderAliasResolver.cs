@@ -7,36 +7,35 @@
 using System.Collections;
 using System.Reflection;
 
-namespace System.Resources
+namespace System.Resources;
+
+public partial class ResXResourceReader
 {
-    public partial class ResXResourceReader
+    private sealed class ReaderAliasResolver : IAliasResolver
     {
-        private sealed class ReaderAliasResolver : IAliasResolver
+        private readonly Hashtable _cachedAliases;
+
+        internal ReaderAliasResolver()
         {
-            private readonly Hashtable _cachedAliases;
+            _cachedAliases = new Hashtable();
+        }
 
-            internal ReaderAliasResolver()
+        public AssemblyName ResolveAlias(string alias)
+        {
+            AssemblyName result = null;
+            if (_cachedAliases is not null)
             {
-                _cachedAliases = new Hashtable();
+                result = (AssemblyName)_cachedAliases[alias];
             }
 
-            public AssemblyName ResolveAlias(string alias)
-            {
-                AssemblyName result = null;
-                if (_cachedAliases is not null)
-                {
-                    result = (AssemblyName)_cachedAliases[alias];
-                }
+            return result;
+        }
 
-                return result;
-            }
-
-            public void PushAlias(string alias, AssemblyName name)
+        public void PushAlias(string alias, AssemblyName name)
+        {
+            if (_cachedAliases is not null && !string.IsNullOrEmpty(alias))
             {
-                if (_cachedAliases is not null && !string.IsNullOrEmpty(alias))
-                {
-                    _cachedAliases[alias] = name;
-                }
+                _cachedAliases[alias] = name;
             }
         }
     }

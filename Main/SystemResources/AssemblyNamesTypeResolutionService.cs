@@ -11,202 +11,201 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace System.Resources
+namespace System.Resources;
+
+internal class AssemblyNamesTypeResolutionService : ITypeResolutionService
 {
-    internal class AssemblyNamesTypeResolutionService : ITypeResolutionService
+    private AssemblyName[] _names;
+    private Hashtable _cachedAssemblies;
+    private Hashtable _cachedTypes;
+
+    private static readonly string s_dotNetPath = Path.Combine(Environment.GetEnvironmentVariable("ProgramFiles"), "dotnet\\shared");
+    private static readonly string s_dotNetPathX86 = Path.Combine(Environment.GetEnvironmentVariable("ProgramFiles(x86)"), "dotnet\\shared");
+
+    internal AssemblyNamesTypeResolutionService(AssemblyName[] names)
     {
-        private AssemblyName[] _names;
-        private Hashtable _cachedAssemblies;
-        private Hashtable _cachedTypes;
+        _names = names;
+    }
 
-        private static readonly string s_dotNetPath = Path.Combine(Environment.GetEnvironmentVariable("ProgramFiles"), "dotnet\\shared");
-        private static readonly string s_dotNetPathX86 = Path.Combine(Environment.GetEnvironmentVariable("ProgramFiles(x86)"), "dotnet\\shared");
+    public Assembly GetAssembly(AssemblyName name)
+    {
+        return GetAssembly(name, true);
+    }
 
-        internal AssemblyNamesTypeResolutionService(AssemblyName[] names)
+    public Assembly GetAssembly(AssemblyName name, bool throwOnError)
+    {
+        Assembly result = null;
+
+        if (_cachedAssemblies is null)
         {
-            _names = names;
+            _cachedAssemblies = Hashtable.Synchronized(new Hashtable());
         }
 
-        public Assembly GetAssembly(AssemblyName name)
+        if (_cachedAssemblies.Contains(name))
         {
-            return GetAssembly(name, true);
+            result = _cachedAssemblies[name] as Assembly;
         }
 
-        public Assembly GetAssembly(AssemblyName name, bool throwOnError)
+        if (result is null)
         {
-            Assembly result = null;
-
-            if (_cachedAssemblies is null)
+            result = Assembly.Load(name.FullName);
+            if (result is not null)
             {
-                _cachedAssemblies = Hashtable.Synchronized(new Hashtable());
+                _cachedAssemblies[name] = result;
             }
-
-            if (_cachedAssemblies.Contains(name))
+            else if (_names is not null)
             {
-                result = _cachedAssemblies[name] as Assembly;
-            }
-
-            if (result is null)
-            {
-                result = Assembly.Load(name.FullName);
-                if (result is not null)
+                foreach (AssemblyName asmName in _names.Where(an => an.Equals(name)))
                 {
-                    _cachedAssemblies[name] = result;
-                }
-                else if (_names is not null)
-                {
-                    foreach (AssemblyName asmName in _names.Where(an => an.Equals(name)))
-                    {
-                        try
-                        {
-                            result = Assembly.LoadFrom(GetPathOfAssembly(asmName));
-                            if (result is not null)
-                            {
-                                _cachedAssemblies[asmName] = result;
-                            }
-                        }
-                        catch
-                        {
-                            if (throwOnError)
-                            {
-                                throw;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public string GetPathOfAssembly(AssemblyName name)
-        {
-            return name.CodeBase;
-        }
-
-        public Type GetType(string name)
-        {
-            return GetType(name, true);
-        }
-
-        public Type GetType(string name, bool throwOnError)
-        {
-            return GetType(name, throwOnError, false);
-        }
-
-        public Type GetType(string name, bool throwOnError, bool ignoreCase)
-        {
-            Type result = null;
-
-            // Check type cache first
-            if (_cachedTypes is null)
-            {
-                _cachedTypes = Hashtable.Synchronized(new Hashtable(StringComparer.Ordinal));
-            }
-
-            if (_cachedTypes.Contains(name))
-            {
-                result = _cachedTypes[name] as Type;
-                return result;
-            }
-
-            // Missed in cache, try to resolve the type from the reference assemblies.
-            if (name.IndexOf(',') != -1)
-            {
-                result = Type.GetType(name, false, ignoreCase);
-            }
-
-            if (result is null && _names is not null)
-            {
-                // If the type is assembly qualified name, we sort the assembly names
-                // to put assemblies with same name in the front so that they can
-                // be searched first.
-                int pos = name.IndexOf(',');
-                if (pos > 0 && pos < name.Length - 1)
-                {
-                    string fullName = name.Substring(pos + 1).Trim();
-                    AssemblyName assemblyName = null;
                     try
                     {
-                        assemblyName = new AssemblyName(fullName);
+                        result = Assembly.LoadFrom(GetPathOfAssembly(asmName));
+                        if (result is not null)
+                        {
+                            _cachedAssemblies[asmName] = result;
+                        }
                     }
                     catch
                     {
-                    }
-
-                    if (assemblyName is not null)
-                    {
-                        List<AssemblyName> assemblyList = new List<AssemblyName>(_names.Length);
-                        foreach (AssemblyName asmName in _names)
+                        if (throwOnError)
                         {
-                            if (string.Compare(assemblyName.Name, asmName.Name, StringComparison.OrdinalIgnoreCase) == 0)
-                            {
-                                assemblyList.Insert(0, asmName);
-                            }
-                            else
-                            {
-                                assemblyList.Add(asmName);
-                            }
-                        }
-
-                        _names = assemblyList.ToArray();
-                    }
-                }
-
-                // Search each reference assembly
-                foreach (AssemblyName asmName in _names)
-                {
-                    Assembly asm = GetAssembly(asmName, false);
-                    if (asm is not null)
-                    {
-                        result = asm.GetType(name, false, ignoreCase);
-                        if (result is null)
-                        {
-                            int indexOfComma = name.IndexOf(',');
-                            if (indexOfComma != -1)
-                            {
-                                string shortName = name.Substring(0, indexOfComma);
-                                result = asm.GetType(shortName, false, ignoreCase);
-                            }
+                            throw;
                         }
                     }
-
-                    if (result is not null)
-                    {
-                        break;
-                    }
                 }
             }
+        }
 
-            if (result is null && throwOnError)
-            {
-                throw new ArgumentException(string.Format("Could not find a type for a name.  The type name was '{0}'.", name));
-            }
+        return result;
+    }
 
-            if (result is not null)
-            {
-                // Only cache types from the shared framework  because they don't need to update.
-                // For simplicity, don't cache custom types
-                if (IsDotNetAssembly(result.Assembly.Location))
-                {
-                    _cachedTypes[name] = result;
-                }
-            }
+    public string GetPathOfAssembly(AssemblyName name)
+    {
+        return name.CodeBase;
+    }
 
+    public Type GetType(string name)
+    {
+        return GetType(name, true);
+    }
+
+    public Type GetType(string name, bool throwOnError)
+    {
+        return GetType(name, throwOnError, false);
+    }
+
+    public Type GetType(string name, bool throwOnError, bool ignoreCase)
+    {
+        Type result = null;
+
+        // Check type cache first
+        if (_cachedTypes is null)
+        {
+            _cachedTypes = Hashtable.Synchronized(new Hashtable(StringComparer.Ordinal));
+        }
+
+        if (_cachedTypes.Contains(name))
+        {
+            result = _cachedTypes[name] as Type;
             return result;
         }
 
-        /// <summary>
-        ///  This is matching %windir%\Microsoft.NET\Framework*, so both 32bit and 64bit framework will be covered.
-        /// </summary>
-        private bool IsDotNetAssembly(string assemblyPath)
+        // Missed in cache, try to resolve the type from the reference assemblies.
+        if (name.IndexOf(',') != -1)
         {
-            return assemblyPath is not null && (assemblyPath.StartsWith(s_dotNetPath, StringComparison.OrdinalIgnoreCase) || assemblyPath.StartsWith(s_dotNetPathX86, StringComparison.OrdinalIgnoreCase));
+            result = Type.GetType(name, false, ignoreCase);
         }
 
-        public void ReferenceAssembly(AssemblyName name)
+        if (result is null && _names is not null)
         {
-            throw new NotSupportedException();
+            // If the type is assembly qualified name, we sort the assembly names
+            // to put assemblies with same name in the front so that they can
+            // be searched first.
+            int pos = name.IndexOf(',');
+            if (pos > 0 && pos < name.Length - 1)
+            {
+                string fullName = name.Substring(pos + 1).Trim();
+                AssemblyName assemblyName = null;
+                try
+                {
+                    assemblyName = new AssemblyName(fullName);
+                }
+                catch
+                {
+                }
+
+                if (assemblyName is not null)
+                {
+                    List<AssemblyName> assemblyList = new List<AssemblyName>(_names.Length);
+                    foreach (AssemblyName asmName in _names)
+                    {
+                        if (string.Compare(assemblyName.Name, asmName.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            assemblyList.Insert(0, asmName);
+                        }
+                        else
+                        {
+                            assemblyList.Add(asmName);
+                        }
+                    }
+
+                    _names = assemblyList.ToArray();
+                }
+            }
+
+            // Search each reference assembly
+            foreach (AssemblyName asmName in _names)
+            {
+                Assembly asm = GetAssembly(asmName, false);
+                if (asm is not null)
+                {
+                    result = asm.GetType(name, false, ignoreCase);
+                    if (result is null)
+                    {
+                        int indexOfComma = name.IndexOf(',');
+                        if (indexOfComma != -1)
+                        {
+                            string shortName = name.Substring(0, indexOfComma);
+                            result = asm.GetType(shortName, false, ignoreCase);
+                        }
+                    }
+                }
+
+                if (result is not null)
+                {
+                    break;
+                }
+            }
         }
+
+        if (result is null && throwOnError)
+        {
+            throw new ArgumentException(string.Format("Could not find a type for a name.  The type name was '{0}'.", name));
+        }
+
+        if (result is not null)
+        {
+            // Only cache types from the shared framework  because they don't need to update.
+            // For simplicity, don't cache custom types
+            if (IsDotNetAssembly(result.Assembly.Location))
+            {
+                _cachedTypes[name] = result;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///  This is matching %windir%\Microsoft.NET\Framework*, so both 32bit and 64bit framework will be covered.
+    /// </summary>
+    private bool IsDotNetAssembly(string assemblyPath)
+    {
+        return assemblyPath is not null && (assemblyPath.StartsWith(s_dotNetPath, StringComparison.OrdinalIgnoreCase) || assemblyPath.StartsWith(s_dotNetPathX86, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void ReferenceAssembly(AssemblyName name)
+    {
+        throw new NotSupportedException();
     }
 }

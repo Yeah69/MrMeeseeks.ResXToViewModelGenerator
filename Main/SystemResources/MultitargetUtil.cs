@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace System.Resources
+namespace System.Resources;
+
+/// <summary>
+///  Helper class supporting Multitarget type assembly qualified name resolution for ResX API.
+///  Note: this file is compiled into different assemblies (runtime and VSIP assemblies ...)
+/// </summary>
+internal static class MultitargetUtil
 {
     /// <summary>
-    ///  Helper class supporting Multitarget type assembly qualified name resolution for ResX API.
-    ///  Note: this file is compiled into different assemblies (runtime and VSIP assemblies ...)
+    ///  This method gets assembly info for the corresponding type. If the delegate
+    ///  is provided it is used to get this information.
     /// </summary>
-    internal static class MultitargetUtil
+    public static string? GetAssemblyQualifiedName(Type? type, Func<Type, string>? typeNameConverter)
     {
-        /// <summary>
-        ///  This method gets assembly info for the corresponding type. If the delegate
-        ///  is provided it is used to get this information.
-        /// </summary>
-        public static string? GetAssemblyQualifiedName(Type? type, Func<Type, string>? typeNameConverter)
-        {
             string? assemblyQualifiedName = null;
 
             if (type != null)
@@ -44,10 +44,10 @@ namespace System.Resources
             return assemblyQualifiedName;
         }
 
-        // ExecutionEngineException is obsolete and shouldn't be used (to catch, throw or reference) anymore.
-        // Pragma added to prevent converting the "type is obsolete" warning into build error.
-        private static bool IsCriticalException(Exception ex)
-        {
+    // ExecutionEngineException is obsolete and shouldn't be used (to catch, throw or reference) anymore.
+    // Pragma added to prevent converting the "type is obsolete" warning into build error.
+    private static bool IsCriticalException(Exception ex)
+    {
             return ex is NullReferenceException
                     || ex is StackOverflowException
                     || ex is OutOfMemoryException
@@ -56,5 +56,4 @@ namespace System.Resources
                     || ex is AccessViolationException
                     || ex is Security.SecurityException;
         }
-    }
 }
